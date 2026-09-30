@@ -1,0 +1,1478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adaptive Exam Operations | Autonomous Schedule Recovery</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f4f7fb;
+            color: #172033;
+        }
+
+        header {
+            background: #172033;
+            color: white;
+            padding: 22px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 25px;
+        }
+
+        header p {
+            margin: 6px 0 0;
+            opacity: 0.8;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .status {
+            background: #1f9d55;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .badge-coordinator {
+            background: #3b82f6;
+            color: white;
+            padding: 7px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .badge-ai {
+            background: #8b5cf6;
+            color: white;
+            padding: 7px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .btn-header {
+            color: white;
+            text-decoration: none;
+            background: #34415c;
+            padding: 9px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-header:hover {
+            background: #47587d;
+        }
+
+        .btn-audit {
+            background: #047857;
+            color: white;
+            padding: 9px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-audit:hover {
+            background: #065f46;
+        }
+
+        .btn-logout {
+            background: #dc2626;
+            color: white;
+            padding: 9px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+        }
+
+        .container {
+            max-width: 1150px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 14px;
+            padding: 24px;
+            margin-bottom: 22px;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06);
+        }
+
+        .card h2 {
+            margin-top: 0;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccd3df;
+            border-radius: 8px;
+            font-size: 15px;
+            margin-bottom: 16px;
+        }
+
+        button.primary-btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 9px;
+            background: #2563eb;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button.primary-btn:hover {
+            background: #1d4ed8;
+        }
+
+        button.secondary-btn {
+            padding: 10px 16px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            background: #f9fafb;
+            color: #374151;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button.secondary-btn:hover {
+            background: #e5e7eb;
+        }
+
+        button.copilot-btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            background: #7c3aed;
+            color: white;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button.copilot-btn:hover {
+            background: #6d28d9;
+        }
+
+        .pill-btn {
+            background: #e0f2fe;
+            color: #0369a1;
+            border: 1px solid #bae6fd;
+            border-radius: 20px;
+            padding: 6px 14px;
+            font-size: 13px;
+            cursor: pointer;
+            font-weight: 500;
+            margin-bottom: 10px;
+            margin-right: 6px;
+            display: inline-block;
+        }
+
+        .pill-btn:hover {
+            background: #bae6fd;
+        }
+
+        .copilot-pill {
+            background: #ede9fe;
+            color: #5b21b6;
+            border: 1px solid #ddd6fe;
+            border-radius: 20px;
+            padding: 6px 12px;
+            font-size: 13px;
+            cursor: pointer;
+            font-weight: 500;
+            margin-bottom: 8px;
+            margin-right: 6px;
+            display: inline-block;
+        }
+
+        .copilot-pill:hover {
+            background: #ddd6fe;
+        }
+
+        button:disabled {
+            background: #9aa6b8;
+            cursor: not-allowed;
+        }
+
+        .scenario {
+            background: #fff7ed;
+            border-left: 5px solid #f97316;
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 14px;
+            line-height: 1.6;
+        }
+
+        .copilot-box {
+            background: #f5f3ff;
+            border-left: 5px solid #7c3aed;
+            padding: 18px;
+            border-radius: 8px;
+            margin-top: 14px;
+        }
+
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 10px;
+            margin-top: 18px;
+        }
+
+        .step {
+            text-align: center;
+            padding: 12px 6px;
+            border-radius: 8px;
+            background: #eef2f7;
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .step.done {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #e5e9f0;
+            text-align: left;
+        }
+
+        th {
+            background: #f5f7fa;
+        }
+
+        .success-box {
+            background: #ecfdf5;
+            border-left: 5px solid #16a34a;
+            padding: 18px;
+            border-radius: 8px;
+            line-height: 1.6;
+        }
+
+        .info-box {
+            background: #eef6ff;
+            border-left: 5px solid #2563eb;
+            padding: 16px;
+            border-radius: 8px;
+            line-height: 1.6;
+            margin-top: 14px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .badge-success { background: #dcfce7; color: #166534; }
+        .badge-warning { background: #fef3c7; color: #92400e; }
+        .badge-danger { background: #fee2e2; color: #991b1b; }
+        .badge-info { background: #e0f2fe; color: #075985; }
+
+        .loading {
+            display: none;
+            margin-top: 15px;
+            text-align: center;
+            font-weight: bold;
+            color: #2563eb;
+        }
+
+        .error {
+            display: none;
+            margin-top: 15px;
+            padding: 14px;
+            background: #fef2f2;
+            color: #991b1b;
+            border-radius: 8px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .agent-note {
+            margin-top: 15px;
+            padding: 14px;
+            background: #eef6ff;
+            border-radius: 8px;
+            line-height: 1.6;
+        }
+
+        .button-bar {
+            display: flex;
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        /* PRINT STYLES FOR OFFICIAL AUDIT REPORT */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #auditReportModal, #auditReportModal * {
+                visibility: visible;
+            }
+            #auditReportModal {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                padding: 0;
+                background: white;
+            }
+            #printableAuditReport {
+                box-shadow: none !important;
+                margin: 0 !important;
+                padding: 15px !important;
+                max-width: 100% !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+
+        @media (max-width: 800px) {
+            .steps {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .header-actions {
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <div>
+        <h1>🤖 Adaptive Exam Operations</h1>
+        <p>Agentic AI for autonomous exam schedule recovery &middot; <em>"A timetable that can survive reality."</em></p>
+    </div>
+
+    <div class="header-actions">
+        <span class="status">● SYSTEM ONLINE</span>
+        <span id="aiBadge" class="badge-ai">🧠 AI ENGINE: LOCAL FAILSAFE</span>
+        <span id="coordBadge" class="badge-coordinator hidden">👨‍💼 COORDINATOR ACTIVE</span>
+        <button id="coordReportBtn" class="btn-audit hidden" onclick="openAuditReportModal()">📄 Audit Report</button>
+        <button id="coordLogoutBtn" class="btn-logout hidden" onclick="coordinatorLogout()">Sign Out</button>
+        <button class="btn-header" onclick="resetState()">🔄 Reset State</button>
+        <a class="btn-header" href="faculty.html">👨‍🏫 Faculty Portal</a>
+    </div>
+</header>
+
+<div class="container">
+
+    <!-- COORDINATOR LOGIN CARD (GATED) -->
+    <div class="card" id="coordinatorLoginCard">
+        <h2>🔐 Exam Coordinator Access Gate</h2>
+        <p style="color:#6b7280; font-size:14px; margin-top:-4px;">
+            The autonomous recovery controller, disruption simulations, and pre-exam broadcasts require Coordinator credentials.
+        </p>
+
+        <label for="coordUserInput">Coordinator Username</label>
+        <input type="text" id="coordUserInput" placeholder="e.g. coordinator" />
+
+        <label for="coordPassInput">Coordinator Password</label>
+        <input type="password" id="coordPassInput" placeholder="Enter coordinator password (admin123)" />
+
+        <div>
+            <button class="pill-btn" onclick="quickFillCoordinator('coordinator', 'admin123')">
+                🔑 Auto-fill Coordinator (coordinator / admin123)
+            </button>
+        </div>
+
+        <button class="primary-btn" onclick="coordinatorLogin()">
+            🔓 Unlock Operations Console
+        </button>
+
+        <div id="coordLoginError" class="error"></div>
+    </div>
+
+    <!-- MAIN CONSOLE (VISIBLE ONLY AFTER COORDINATOR LOGIN) -->
+    <div id="coordinatorConsole" class="hidden">
+
+        <!-- GEMINI AI LLM CONFIGURATION CARD -->
+        <div class="card" style="border-top: 4px solid #8b5cf6;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                <div>
+                    <h2 style="margin:0; font-size:20px;">🧠 AI Intelligence Engine (Google Gemini 1.5 Flash)</h2>
+                    <p style="margin:4px 0 0; color:#4b5563; font-size:14px;">
+                        Status: <strong id="llmStatusText" style="color:#7c3aed;">Local Heuristic AI Engine (Dual-Mode Active)</strong>
+                    </p>
+                </div>
+                <button class="secondary-btn" onclick="toggleGeminiSettings()" style="font-size:13px;">
+                    ⚙️ Connect Gemini API Key
+                </button>
+            </div>
+
+            <div id="geminiSettingsDrawer" class="hidden" style="margin-top:16px; padding:16px; background:#f5f3ff; border-radius:8px;">
+                <p style="margin:0 0 10px; font-size:14px; color:#4c1d95;">
+                    💡 <strong>Get a Free Google Gemini API Key:</strong> Visit <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:#6d28d9; font-weight:bold;">aistudio.google.com/app/apikey ↗</a>, sign in with your Google account, click <em>Create API Key</em>, and paste it below. (No credit card required).
+                </p>
+                <div style="display:flex; gap:10px;">
+                    <input type="password" id="geminiKeyInput" placeholder="Paste Gemini API Key (e.g. AIzaSy...)" style="margin:0;" />
+                    <button class="copilot-btn" onclick="saveGeminiKey()" style="white-space:nowrap;">💾 Save Key</button>
+                </div>
+                <div id="keySaveMsg" style="margin-top:8px; font-size:13px; font-weight:bold;"></div>
+            </div>
+        </div>
+
+        <!-- NATURAL LANGUAGE AGENT COPILOT CARD -->
+        <div class="card" style="border-top: 4px solid #7c3aed;">
+            <h2 style="margin:0; font-size:20px;">💬 Natural Language Coordinator Copilot</h2>
+            <p style="color:#6b7280; font-size:14px; margin-top:4px;">
+                Describe a real-world disruption in natural English. The AI parses the situation into structured constraint parameters and executes the autonomous recovery pipeline.
+            </p>
+
+            <div>
+                <span style="font-size:13px; color:#4b5563; font-weight:bold; display:block; margin-bottom:6px;">Sample Real-World Situations:</span>
+                <button class="copilot-pill" onclick="quickCopilotFill('Dr. Backup called in sick for slot T1')">
+                    🤒 "Dr. Backup called in sick for slot T1"
+                </button>
+                <button class="copilot-pill" onclick="quickCopilotFill('Heavy rain flooded Room R102 in slot T1')">
+                    🌧️ "Heavy rain flooded Room R102 in slot T1"
+                </button>
+                <button class="copilot-pill" onclick="quickCopilotFill('Compound emergency: R102 flooded and Dr. Backup is absent in T1')">
+                    ⚡ "Compound emergency: R102 flooded & Dr. Backup absent in T1"
+                </button>
+            </div>
+
+            <div style="display:flex; gap:10px; margin-top:12px;">
+                <input type="text" id="copilotInput" placeholder="Describe the operational disruption here..." style="margin:0;" />
+                <button class="copilot-btn" id="copilotSubmitBtn" onclick="runCopilotPrompt()" style="white-space:nowrap;">
+                    ⚡ Ask Copilot &amp; Recover
+                </button>
+            </div>
+
+            <div id="copilotResultBox" class="copilot-box hidden">
+                <strong style="color:#5b21b6;">🤖 AI Copilot Analysis:</strong>
+                <div id="copilotIntentText" style="margin-top:4px; font-size:14px;"></div>
+            </div>
+        </div>
+
+        <!-- PRE-EXAM OPERATIONS & DEMO CONTROLS -->
+        <div class="card">
+            <h2>⏰ Pre-Exam Operations &amp; Faculty Readiness (12 Professors)</h2>
+            <p>Broadcast confirmation/check-in reminders, inspect multi-tier candidate eligibility by slot, and audit the 12-professor master teaching timetable across CSE, ECE, IT, and MECH.</p>
+            <div class="button-bar" style="flex-wrap:wrap; gap:10px;">
+                <button class="secondary-btn" id="preExamButton" onclick="broadcastPreExamReminders()">
+                    📢 Broadcast 1-Hour Pre-Exam Reminders
+                </button>
+                <button class="secondary-btn" onclick="toggleCandidatePool()">
+                    👥 Inspect Backup Candidate Pool (By Slot)
+                </button>
+                <button class="secondary-btn" onclick="toggleMasterRegistry()">
+                    📋 Faculty Master Registry &amp; Schedule (12 Professors)
+                </button>
+            </div>
+            <div id="preExamStatus" class="info-box hidden"></div>
+
+            <!-- CANDIDATE POOL SECTION -->
+            <div id="candidatePoolCard" class="hidden" style="margin-top:20px; border-top:1px solid #e5e7eb; padding-top:16px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+                    <div>
+                        <h3 style="margin:0;">👥 Multi-Tier Faculty Candidate Pool Evaluation</h3>
+                        <p style="margin:4px 0 0; font-size:13px; color:#6b7280;">Autonomous agent filters candidates: <strong>H4 Timetable Free &rarr; H5 Duty Confirmed &rarr; H6 Physical Check-In &rarr; H7 Non-Assigned</strong>.</p>
+                    </div>
+                    <div style="display:flex; gap:8px;">
+                        <button id="poolSlotT1Btn" class="pill-btn" style="background:#111827; color:white; border-color:#111827;" onclick="setCandidatePoolSlot('T1')">
+                            Slot T1 (09:00 - 12:00)
+                        </button>
+                        <button id="poolSlotT2Btn" class="pill-btn" onclick="setCandidatePoolSlot('T2')">
+                            Slot T2 (14:00 - 17:00)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- DEPARTMENT FILTER PILLS -->
+                <div style="margin-bottom:12px; display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                    <span style="font-size:12px; font-weight:bold; color:#4b5563;">Filter Department:</span>
+                    <button class="pill-btn" id="filterDeptALL" style="background:#111827; color:white; border-color:#111827;" onclick="filterCandidatePoolDept('ALL')">All Depts (12)</button>
+                    <button class="pill-btn" id="filterDeptCSE" onclick="filterCandidatePoolDept('CSE')">CSE</button>
+                    <button class="pill-btn" id="filterDeptECE" onclick="filterCandidatePoolDept('ECE')">ECE</button>
+                    <button class="pill-btn" id="filterDeptIT" onclick="filterCandidatePoolDept('IT')">IT</button>
+                    <button class="pill-btn" id="filterDeptMECH" onclick="filterCandidatePoolDept('MECH')">MECH</button>
+                </div>
+
+                <div id="poolSummaryStats" style="background:#f8fafc; border:1px solid #e2e8f0; padding:10px 14px; border-radius:8px; font-size:13px; margin-bottom:12px; display:flex; gap:20px; flex-wrap:wrap;">
+                    <span>Loading stats...</span>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Faculty Member</th>
+                            <th>Dept / Block</th>
+                            <th>Teaching Schedule / Lecture Clash</th>
+                            <th>Timetable Free</th>
+                            <th>Duty Confirmed</th>
+                            <th>Checked-In</th>
+                            <th>Exam Duty</th>
+                            <th>Agent Eligibility &amp; Reason</th>
+                        </tr>
+                    </thead>
+                    <tbody id="candidatePoolTable">
+                        <tr><td colspan="8">Loading pool...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- MASTER REGISTRY & SCHEDULE BREAKDOWN SECTION -->
+            <div id="masterRegistryCard" class="hidden" style="margin-top:20px; border-top:1px solid #e5e7eb; padding-top:16px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:10px;">
+                    <div>
+                        <h3 style="margin:0;">📋 Institutional Faculty Registry &amp; Daily Teaching Timetables</h3>
+                        <p style="margin:4px 0 0; font-size:13px; color:#6b7280;">Full institutional overview of all 12 professors across CSE, ECE, IT, and MECH, showing their scheduled lecture hours vs invigilation readiness.</p>
+                    </div>
+                    <button class="secondary-btn" onclick="loadMasterRegistryData()" style="padding:6px 12px; font-size:12px;">
+                        🔄 Refresh Registry
+                    </button>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Faculty ID &amp; Name</th>
+                            <th>Dept</th>
+                            <th>Block</th>
+                            <th>Slot T1 (09:00 - 12:00) Schedule</th>
+                            <th>Slot T2 (14:00 - 17:00) Schedule</th>
+                            <th>Confirmation</th>
+                            <th>Check-In</th>
+                            <th>Current Exam Duty</th>
+                        </tr>
+                    </thead>
+                    <tbody id="masterRegistryTable">
+                        <tr><td colspan="8">Loading master registry...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- DISRUPTION CONTROL -->
+        <div class="card">
+            <h2>⚠️ Autonomous Recovery Scenario (Manual Selection)</h2>
+
+            <label for="disruptionType">Select disruption event</label>
+            <select id="disruptionType">
+                <option value="invigilator">
+                    Invigilator Disruption: I02 becomes unavailable before T1 exam
+                </option>
+                <option value="room">
+                    Room Disruption: Room R102 becomes unavailable during T1
+                </option>
+                <option value="compound">
+                    Compound Disruption: Room R102 AND Invigilator I02 unavailable in T1
+                </option>
+            </select>
+
+            <button id="recoveryButton" class="primary-btn">
+                🤖 Activate Autonomous Recovery Cycle
+            </button>
+
+            <div id="scenarioText" class="scenario">
+                <strong>Invigilator Disruption</strong><br><br>
+                Invigilator I02 becomes unavailable before the T1 exam.<br><br>
+                The Agent detects the absence and automatically assigns a valid confirmed and checked-in backup faculty member.
+            </div>
+
+            <div id="loading" class="loading">
+                🧠 Agent loop in progress: PLAN &rarr; VALIDATE &rarr; DETECT &rarr; REPAIR &rarr; EXPLAIN &rarr; VERIFY...
+            </div>
+
+            <div id="error" class="error"></div>
+        </div>
+
+        <!-- AGENT DECISION -->
+        <div class="card hidden" id="agentCard">
+            <h2>🧠 Agent Decision &amp; Orchestration</h2>
+
+            <div class="success-box">
+                <strong>🤖 Autonomous Recovery Cycle Completed</strong>
+                <div id="explanationBox" style="margin-top:10px; font-size:15px;"></div>
+            </div>
+
+            <div class="steps">
+                <div class="step done">PLAN ✓</div>
+                <div class="step done">VALIDATE ✓</div>
+                <div class="step done">DISRUPT ✓</div>
+                <div class="step done">DETECT ✓</div>
+                <div class="step done">REPAIR ✓</div>
+                <div class="step done">VERIFY ✓</div>
+            </div>
+
+            <div class="agent-note">
+                <strong>🤖 Autonomous Multi-Constraint Reasoning:</strong><br>
+                The agent dynamically evaluated timetable availability, faculty confirmation, physical check-in, room capacity, ground-floor accessibility requirements, and double-booking avoidance before committing the repaired schedule.
+            </div>
+
+            <!-- EXPORT AUDIT REPORT BUTTON -->
+            <div style="margin-top:16px; display:flex; justify-content:flex-end;">
+                <button class="btn-audit" onclick="openAuditReportModal()" style="padding:12px 20px; font-size:15px; display:flex; align-items:center; gap:8px;">
+                    📄 Export Recovery Audit Report (Official PDF)
+                </button>
+            </div>
+        </div>
+
+        <!-- RECOVERED SCHEDULE -->
+        <div class="card hidden" id="recoveredCard">
+            <h2>🔧 Repaired &amp; Verified Schedule</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Exam</th>
+                        <th>Slot</th>
+                        <th>Room</th>
+                        <th>Invigilator</th>
+                        <th>Change Status</th>
+                    </tr>
+                </thead>
+                <tbody id="recoveredSchedule"></tbody>
+            </table>
+        </div>
+
+        <!-- VERIFICATION -->
+        <div class="card hidden" id="verificationCard">
+            <h2>✅ Final Verification</h2>
+            <div class="success-box">
+                <strong>✅ Schedule Successfully Verified by Agent Validator</strong>
+                <br><br>
+                All hard constraints passed after autonomous repair:
+                <ul>
+                    <li>H1: No student overlaps</li>
+                    <li>H2: Room capacity satisfied</li>
+                    <li>H3: Room availability verified</li>
+                    <li>H3b: Room double-booking avoided</li>
+                    <li>H4: Faculty timetable availability confirmed</li>
+                    <li>H5: Faculty availability confirmed by staff</li>
+                    <li>H6: Physical check-in validated</li>
+                    <li>H7: Faculty double-booking avoided</li>
+                    <li>H8: Accessibility constraints strictly satisfied (ground floor for S101)</li>
+                </ul>
+                The agent repaired only the affected assignments and preserved the remaining schedule.
+            </div>
+        </div>
+
+    </div>
+
+    <!-- INITIAL SCHEDULE (ALWAYS VISIBLE FOR INSPECTION) -->
+    <div class="card" id="initialCard">
+        <h2>📅 Active Initial Schedule</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Exam</th>
+                    <th>Subject</th>
+                    <th>Slot</th>
+                    <th>Room</th>
+                    <th>Assigned Invigilator</th>
+                </tr>
+            </thead>
+            <tbody id="initialSchedule">
+                <tr><td colspan="5">Loading initial schedule...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+<!-- ======================================================== -->
+<!-- OFFICIAL AUDIT REPORT MODAL (PRINTABLE / PDF READY)       -->
+<!-- ======================================================== -->
+<div id="auditReportModal" class="hidden" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.65); z-index:9999; overflow-y:auto; padding:20px 10px;">
+    <div style="max-width:850px; margin:20px auto; background:white; border-radius:12px; padding:36px; box-shadow:0 10px 40px rgba(0,0,0,0.3); position:relative;" id="printableAuditReport">
+        
+        <!-- CLOSE & PRINT BAR (HIDDEN IN PRINT) -->
+        <div class="no-print" style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e5e7eb; padding-bottom:14px; margin-bottom:24px;">
+            <span style="font-weight:bold; color:#374151;">📄 Official University Examination Audit Document</span>
+            <div style="display:flex; gap:10px;">
+                <button class="copilot-btn" onclick="window.print()" style="background:#047857; padding:8px 16px; font-size:13px;">
+                    🖨️ Print / Save as PDF
+                </button>
+                <button class="secondary-btn" onclick="closeAuditReportModal()" style="padding:8px 14px; font-size:13px;">
+                    ✖ Close
+                </button>
+            </div>
+        </div>
+
+        <!-- OFFICIAL LETTERHEAD -->
+        <div style="text-align:center; border-bottom:2px solid #111827; padding-bottom:16px; margin-bottom:20px;">
+            <div style="font-size:22px; font-weight:900; letter-spacing:1px; color:#111827;">UNIVERSITY EXAMINATION BOARD</div>
+            <div style="font-size:13px; font-weight:bold; color:#4b5563; margin-top:2px;">OFFICE OF THE CONTROLLER OF EXAMINATIONS</div>
+            <div style="display:inline-block; margin-top:10px; padding:4px 14px; background:#f3f4f6; border:1px solid #d1d5db; border-radius:4px; font-size:12px; font-weight:bold; letter-spacing:0.5px; color:#1f2937;">
+                OFFICIAL DISRUPTION INCIDENT &amp; SCHEDULE RECOVERY AUDIT REPORT
+            </div>
+        </div>
+
+        <!-- METADATA GRID -->
+        <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:10px; background:#f9fafb; border:1px solid #e5e7eb; padding:14px; border-radius:8px; font-size:13px; margin-bottom:20px;">
+            <div><strong>Incident Audit ID:</strong> <span id="auditReportId">-</span></div>
+            <div><strong>Timestamp:</strong> <span id="auditTimestamp">-</span></div>
+            <div><strong>Authorizing Officer:</strong> <span>Prof. Exam Operations Coordinator</span></div>
+            <div><strong>AI Intelligence Core:</strong> <span id="auditAiEngine">-</span></div>
+            <div><strong>Recovery Execution Mode:</strong> <span style="color:#059669; font-weight:bold;">Autonomous Agentic Recovery Loop</span></div>
+            <div><strong>Verification Status:</strong> <span style="color:#059669; font-weight:bold;">100% Constraints Passed (0 Conflicts)</span></div>
+        </div>
+
+        <!-- 1. EXECUTIVE REASONING SECTION -->
+        <div style="margin-bottom:22px;">
+            <h3 style="margin:0 0 8px; font-size:14px; color:#111827; text-transform:uppercase; border-bottom:1px solid #e5e7eb; padding-bottom:4px;">
+                1. Executive Incident Analysis &amp; AI Decision Rationale
+            </h3>
+            <div id="auditExplanationContent" style="background:#f0fdf4; border-left:4px solid #16a34a; padding:14px; border-radius:6px; font-size:13px; line-height:1.6; color:#14532d;">
+            </div>
+        </div>
+
+        <!-- 2. TIMETABLE DELTA TABLE -->
+        <div style="margin-bottom:22px;">
+            <h3 style="margin:0 0 8px; font-size:14px; color:#111827; text-transform:uppercase; border-bottom:1px solid #e5e7eb; padding-bottom:4px;">
+                2. Examination Timetable Reallocation Matrix (Delta Audit)
+            </h3>
+            <table style="font-size:12px; margin-top:8px; width:100%; border:1px solid #d1d5db;">
+                <thead>
+                    <tr style="background:#f3f4f6;">
+                        <th style="border:1px solid #d1d5db; padding:8px;">Exam Code</th>
+                        <th style="border:1px solid #d1d5db; padding:8px;">Course Title</th>
+                        <th style="border:1px solid #d1d5db; padding:8px;">Baseline Allocation</th>
+                        <th style="border:1px solid #d1d5db; padding:8px;">Recovered Allocation</th>
+                        <th style="border:1px solid #d1d5db; padding:8px;">Audit Status</th>
+                    </tr>
+                </thead>
+                <tbody id="auditDeltaTable">
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 3. 8-POINT CONSTRAINT AUDIT -->
+        <div style="margin-bottom:22px;">
+            <h3 style="margin:0 0 8px; font-size:14px; color:#111827; text-transform:uppercase; border-bottom:1px solid #e5e7eb; padding-bottom:4px;">
+                3. Institutional Hard Constraint Compliance Verification (H1 - H8)
+            </h3>
+            <div id="auditConstraintList" style="display:grid; grid-template-columns: repeat(2, 1fr); gap:8px; font-size:12px; margin-top:8px;">
+            </div>
+        </div>
+
+        <!-- 4. FACULTY NOTIFICATION & DISPATCH LOG -->
+        <div style="margin-bottom:26px;">
+            <h3 style="margin:0 0 8px; font-size:14px; color:#111827; text-transform:uppercase; border-bottom:1px solid #e5e7eb; padding-bottom:4px;">
+                4. Stakeholder Emergency Dispatch &amp; Notification Log
+            </h3>
+            <table style="font-size:12px; margin-top:8px; width:100%; border:1px solid #d1d5db;">
+                <thead>
+                    <tr style="background:#f3f4f6;">
+                        <th style="border:1px solid #d1d5db; padding:6px;">Staff ID</th>
+                        <th style="border:1px solid #d1d5db; padding:6px;">Name &amp; Dept</th>
+                        <th style="border:1px solid #d1d5db; padding:6px;">Duty Confirmed</th>
+                        <th style="border:1px solid #d1d5db; padding:6px;">Checked In</th>
+                        <th style="border:1px solid #d1d5db; padding:6px;">Emergency Notification Sent</th>
+                    </tr>
+                </thead>
+                <tbody id="auditFacultyTable">
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 5. FORMAL SIGN-OFF SECTION -->
+        <div style="margin-top:36px; padding-top:20px; border-top:1px solid #9ca3af; display:flex; justify-content:space-between; font-size:12px; text-align:center;">
+            <div>
+                <div style="height:35px;"></div>
+                <div style="border-top:1px dashed #4b5563; width:190px; margin:0 auto; padding-top:4px;">
+                    <strong>Exam Operations Coordinator</strong><br>
+                    <span style="font-size:11px; color:#6b7280;">Incident Operations Unit</span>
+                </div>
+            </div>
+            <div>
+                <div style="height:35px;"></div>
+                <div style="border-top:1px dashed #4b5563; width:190px; margin:0 auto; padding-top:4px;">
+                    <strong>Controller of Examinations</strong><br>
+                    <span style="font-size:11px; color:#6b7280;">University Examination Board</span>
+                </div>
+            </div>
+            <div>
+                <div style="height:35px;"></div>
+                <div style="border-top:1px dashed #4b5563; width:190px; margin:0 auto; padding-top:4px;">
+                    <strong>Dean of Academic Affairs</strong><br>
+                    <span style="font-size:11px; color:#6b7280;">University Administration</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    const API = "http://127.0.0.1:8000";
+
+    const disruptionType = document.getElementById("disruptionType");
+    const recoveryButton = document.getElementById("recoveryButton");
+    const scenarioText = document.getElementById("scenarioText");
+    const loading = document.getElementById("loading");
+    const errorBox = document.getElementById("error");
+    const agentCard = document.getElementById("agentCard");
+    const explanationBox = document.getElementById("explanationBox");
+    const recoveredCard = document.getElementById("recoveredCard");
+    const verificationCard = document.getElementById("verificationCard");
+    const initialSchedule = document.getElementById("initialSchedule");
+    const recoveredSchedule = document.getElementById("recoveredSchedule");
+
+    let initialScheduleData = [];
+
+    // =====================================================
+    // AUDIT REPORT MODAL LOGIC
+    // =====================================================
+    async function openAuditReportModal() {
+        try {
+            const res = await fetch(`${API}/audit/report`);
+            const data = await res.json();
+
+            document.getElementById("auditReportId").textContent = data.report_id;
+            document.getElementById("auditTimestamp").textContent = data.timestamp;
+            document.getElementById("auditAiEngine").textContent = data.ai_engine;
+
+            // Explanations
+            const expDiv = document.getElementById("auditExplanationContent");
+            if (data.last_explanations && data.last_explanations.length > 0) {
+                expDiv.innerHTML = data.last_explanations.map(e => `
+                    <div style="margin-bottom:6px;">${e.includes('[AI') ? '🧠' : '💡'} ${e}</div>
+                `).join("");
+            } else {
+                expDiv.innerHTML = `<div>Standard initial examination schedule verified with 0 constraint conflicts across student cohorts and examination venues.</div>`;
+            }
+
+            // Delta table
+            const deltaTbody = document.getElementById("auditDeltaTable");
+            deltaTbody.innerHTML = data.schedule_delta.map(row => `
+                <tr style="${row.status === 'REPAIRED' ? 'background:#fef3c7;' : ''}">
+                    <td style="border:1px solid #d1d5db; padding:8px;"><strong>${row.exam_id}</strong></td>
+                    <td style="border:1px solid #d1d5db; padding:8px;">${row.subject}</td>
+                    <td style="border:1px solid #d1d5db; padding:8px;">${row.original}</td>
+                    <td style="border:1px solid #d1d5db; padding:8px;"><strong>${row.recovered}</strong></td>
+                    <td style="border:1px solid #d1d5db; padding:8px;">
+                        <span class="badge ${row.status === 'REPAIRED' ? 'badge-warning' : 'badge-success'}">${row.status}</span>
+                    </td>
+                </tr>
+            `).join("");
+
+            // Constraint verification list
+            const constList = document.getElementById("auditConstraintList");
+            constList.innerHTML = data.constraint_audit.map(c => `
+                <div style="background:#f9fafb; border:1px solid #e5e7eb; padding:8px 10px; border-radius:6px; display:flex; justify-content:space-between; align-items:center;">
+                    <div><strong>${c.code}:</strong> ${c.name}</div>
+                    <span class="badge badge-success">✓ PASS</span>
+                </div>
+            `).join("");
+
+            // Faculty dispatch log
+            const facultyTbody = document.getElementById("auditFacultyTable");
+            facultyTbody.innerHTML = data.faculty_summary.map(f => `
+                <tr>
+                    <td style="border:1px solid #d1d5db; padding:6px;"><strong>${f.invigilator_id}</strong></td>
+                    <td style="border:1px solid #d1d5db; padding:6px;">${f.name} (${f.department} - Block ${f.block})</td>
+                    <td style="border:1px solid #d1d5db; padding:6px; text-align:center;">${f.confirmed ? '✅ Confirmed' : '⚠️ Pending'}</td>
+                    <td style="border:1px solid #d1d5db; padding:6px; text-align:center;">${f.checked_in ? '✅ Checked In' : '❌ Absent'}</td>
+                    <td style="border:1px solid #d1d5db; padding:6px;">${f.latest_notification}</td>
+                </tr>
+            `).join("");
+
+            document.getElementById("auditReportModal").classList.remove("hidden");
+
+        } catch (e) {
+            alert("Error generating audit report: " + e.message);
+        }
+    }
+
+    function closeAuditReportModal() {
+        document.getElementById("auditReportModal").classList.add("hidden");
+    }
+
+    // =====================================================
+    // LLM ENGINE STATUS & KEY CONFIGURATION
+    // =====================================================
+    async function checkLLMStatus() {
+        try {
+            const res = await fetch(`${API}/llm/status`);
+            const data = await res.json();
+            const aiBadge = document.getElementById("aiBadge");
+            const statusText = document.getElementById("llmStatusText");
+
+            if (data.live_llm_active) {
+                aiBadge.textContent = "🧠 GEMINI 1.5 FLASH (LIVE AI)";
+                aiBadge.style.background = "#10b981";
+                statusText.textContent = "Google Gemini 1.5 Flash (Online & Active)";
+                statusText.style.color = "#059669";
+            } else {
+                aiBadge.textContent = "🧠 AI ENGINE: LOCAL FAILSAFE";
+                aiBadge.style.background = "#8b5cf6";
+                statusText.textContent = "Local Heuristic AI Engine (Dual-Mode Active)";
+                statusText.style.color = "#7c3aed";
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    function toggleGeminiSettings() {
+        const drawer = document.getElementById("geminiSettingsDrawer");
+        drawer.classList.toggle("hidden");
+    }
+
+    async function saveGeminiKey() {
+        const key = document.getElementById("geminiKeyInput").value.trim();
+        const msg = document.getElementById("keySaveMsg");
+
+        try {
+            const res = await fetch(`${API}/llm/config`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ api_key: key })
+            });
+            const data = await res.json();
+            msg.textContent = "✅ " + data.message;
+            msg.style.color = "#059669";
+            await checkLLMStatus();
+        } catch (e) {
+            msg.textContent = "❌ Failed to save key.";
+            msg.style.color = "#dc2626";
+        }
+    }
+
+    // =====================================================
+    // NATURAL LANGUAGE AGENT COPILOT
+    // =====================================================
+    function quickCopilotFill(query) {
+        document.getElementById("copilotInput").value = query;
+    }
+
+    async function runCopilotPrompt() {
+        const input = document.getElementById("copilotInput");
+        const query = input.value.trim();
+        if (!query) return;
+
+        const btn = document.getElementById("copilotSubmitBtn");
+        const resultBox = document.getElementById("copilotResultBox");
+        const intentText = document.getElementById("copilotIntentText");
+
+        btn.disabled = true;
+        btn.textContent = "🧠 Reasoning...";
+        resultBox.classList.remove("hidden");
+        intentText.textContent = "Parsing natural language input with AI Engine...";
+
+        try {
+            const res = await fetch(`${API}/agent/copilot`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ query: query })
+            });
+            const data = await res.json();
+
+            if (data.status !== "success") {
+                throw new Error(data.message || "Copilot recovery failed");
+            }
+
+            intentText.innerHTML = `
+                ${data.parsed_intent.summary}<br>
+                &bull; Classified Type: <strong>${data.disruption_type.toUpperCase()}</strong> &middot; Target: <strong>${data.parsed_intent.disrupted_room_id || data.parsed_intent.disrupted_invigilator_id}</strong> &middot; Slot: <strong>${data.parsed_intent.disrupted_slot_id}</strong>
+            `;
+
+            renderRecoveryOutput(data);
+
+        } catch (err) {
+            intentText.textContent = "❌ " + err.message;
+        } finally {
+            btn.disabled = false;
+            btn.textContent = "⚡ Ask Copilot & Recover";
+        }
+    }
+
+    // =====================================================
+    // COORDINATOR AUTHENTICATION
+    // =====================================================
+    function quickFillCoordinator(user, pass) {
+        document.getElementById("coordUserInput").value = user;
+        document.getElementById("coordPassInput").value = pass;
+        document.getElementById("coordLoginError").style.display = "none";
+    }
+
+    async function coordinatorLogin() {
+        const user = document.getElementById("coordUserInput").value.trim();
+        const pass = document.getElementById("coordPassInput").value.trim();
+        const err = document.getElementById("coordLoginError");
+
+        if (!user || !pass) {
+            err.textContent = "Please enter coordinator username and password.";
+            err.style.display = "block";
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API}/auth/login`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username: user, password: pass, role: "coordinator" })
+            });
+            const data = await res.json();
+
+            if (data.status !== "success") {
+                err.textContent = "❌ " + data.message;
+                err.style.display = "block";
+                return;
+            }
+
+            sessionStorage.setItem("coordinator_session", JSON.stringify(data));
+            unlockCoordinatorConsole();
+
+        } catch (e) {
+            err.textContent = "Unable to connect to authentication server.";
+            err.style.display = "block";
+        }
+    }
+
+    function coordinatorLogout() {
+        sessionStorage.removeItem("coordinator_session");
+        document.getElementById("coordinatorConsole").classList.add("hidden");
+        document.getElementById("coordinatorLoginCard").classList.remove("hidden");
+        document.getElementById("coordBadge").classList.add("hidden");
+        document.getElementById("coordLogoutBtn").classList.add("hidden");
+        document.getElementById("coordReportBtn").classList.add("hidden");
+        document.getElementById("coordPassInput").value = "";
+    }
+
+    function unlockCoordinatorConsole() {
+        document.getElementById("coordinatorLoginCard").classList.add("hidden");
+        document.getElementById("coordinatorConsole").classList.remove("hidden");
+        document.getElementById("coordBadge").classList.remove("hidden");
+        document.getElementById("coordLogoutBtn").classList.remove("hidden");
+        document.getElementById("coordReportBtn").classList.remove("hidden");
+        checkLLMStatus();
+    }
+
+    // =====================================================
+    // LOAD DYNAMIC INITIAL SCHEDULE FROM BACKEND
+    // =====================================================
+    async function loadInitialSchedule() {
+        try {
+            const response = await fetch(`${API}/schedule`);
+            const data = await response.json();
+            if (data.status === "success") {
+                initialScheduleData = data.schedule;
+                initialSchedule.innerHTML = initialScheduleData.map(item => `
+                    <tr>
+                        <td><strong>${item.exam_id}</strong></td>
+                        <td>${item.subject || ""}</td>
+                        <td>${item.slot_id}</td>
+                        <td>${item.room_id}</td>
+                        <td>${item.invigilator_ids.join(", ")}</td>
+                    </tr>
+                `).join("");
+            }
+        } catch (err) {
+            initialSchedule.innerHTML = `<tr><td colspan="5" style="color:#b91c1c;">Unable to connect to backend server.</td></tr>`;
+        }
+    }
+
+    // =====================================================
+    // UPDATE SCENARIO TEXT
+    // =====================================================
+    disruptionType.addEventListener("change", () => {
+        if (disruptionType.value === "invigilator") {
+            scenarioText.innerHTML = `
+                <strong>Invigilator Disruption</strong><br><br>
+                Invigilator I02 becomes unavailable before the T1 exam.<br><br>
+                The Agent detects the absence and automatically assigns a valid confirmed and checked-in backup faculty member.
+            `;
+        } else if (disruptionType.value === "room") {
+            scenarioText.innerHTML = `
+                <strong>Room Disruption</strong><br><br>
+                Room R102 becomes unavailable during T1.<br><br>
+                The Agent detects the conflict and automatically selects a valid alternative room.
+            `;
+        } else if (disruptionType.value === "compound") {
+            scenarioText.innerHTML = `
+                <strong>Compound Multi-Level Disruption</strong><br><br>
+                Room R102 becomes unavailable AND Invigilator I02 becomes unavailable in T1 simultaneously.<br><br>
+                The Agent detects both hard constraint violations and autonomously repairs both room and invigilator assignments while preserving unaffected exams.
+            `;
+        }
+    });
+
+    // =====================================================
+    // PRE-EXAM NOTIFICATION BROADCAST
+    // =====================================================
+    async function broadcastPreExamReminders() {
+        const btn = document.getElementById("preExamButton");
+        const statusBox = document.getElementById("preExamStatus");
+        btn.disabled = true;
+        statusBox.classList.remove("hidden");
+        statusBox.textContent = "Broadcasting reminders...";
+
+        try {
+            const res = await fetch(`${API}/faculty/send-pre-exam-notifications`, { method: "POST" });
+            const data = await res.json();
+            if (data.status === "success") {
+                statusBox.innerHTML = `
+                    <strong>✅ Broadcast Complete:</strong> ${data.message}<br>
+                    ${data.notifications_sent.map(n => `&bull; Sent to <strong>${n.invigilator_id} (${n.name})</strong> for ${n.exam_id} (${n.slot_id} / ${n.room_id})`).join("<br>")}
+                `;
+            } else {
+                statusBox.textContent = data.message || "Failed to broadcast notifications";
+            }
+        } catch (err) {
+            statusBox.textContent = "Error broadcasting pre-exam reminders.";
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    // =====================================================
+    // CANDIDATE POOL & MASTER REGISTRY INSPECTOR
+    // =====================================================
+    let poolVisible = false;
+    let masterRegistryVisible = false;
+    let currentPoolSlot = "T1";
+    let currentDeptFilter = "ALL";
+    let cachedCandidates = [];
+
+    async function toggleCandidatePool() {
+        const card = document.getElementById("candidatePoolCard");
+        poolVisible = !poolVisible;
+        if (!poolVisible) {
+            card.classList.add("hidden");
+            return;
+        }
+        card.classList.remove("hidden");
+        await loadCandidatePoolData();
+    }
+
+    async function toggleMasterRegistry() {
+        const card = document.getElementById("masterRegistryCard");
+        masterRegistryVisible = !masterRegistryVisible;
+        if (!masterRegistryVisible) {
+            card.classList.add("hidden");
+            return;
+        }
+        card.classList.remove("hidden");
+        await loadMasterRegistryData();
+    }
+
+    function setCandidatePoolSlot(slot) {
+        currentPoolSlot = slot;
+        document.getElementById("poolSlotT1Btn").style.background = slot === "T1" ? "#111827" : "#e0f2fe";
+        document.getElementById("poolSlotT1Btn").style.color = slot === "T1" ? "white" : "#0369a1";
+        document.getElementById("poolSlotT2Btn").style.background = slot === "T2" ? "#111827" : "#e0f2fe";
+        document.getElementById("poolSlotT2Btn").style.color = slot === "T2" ? "white" : "#0369a1";
+        loadCandidatePoolData();
+    }
+
+    function filterCandidatePoolDept(dept) {
+        currentDeptFilter = dept;
+        ["ALL", "CSE", "ECE", "IT", "MECH"].forEach(d => {
+            const btn = document.getElementById(`filterDept${d}`);
+            if (btn) {
+                btn.style.background = d === dept ? "#111827" : "#e0f2fe";
+                btn.style.color = d === dept ? "white" : "#0369a1";
+            }
+        });
+        renderCandidatePoolTable();
+    }
+
+    async function loadCandidatePoolData() {
+        const tableBody = document.getElementById("candidatePoolTable");
+        tableBody.innerHTML = `<tr><td colspan="8">Evaluating candidate availability for Slot ${currentPoolSlot}...</td></tr>`;
+
+        try {
+            const res = await fetch(`${API}/faculty/candidate-pool?slot_id=${currentPoolSlot}`);
+            const data = await res.json();
+            cachedCandidates = data.candidates || [];
+
+            const statsBox = document.getElementById("poolSummaryStats");
+            const readyCount = cachedCandidates.filter(c => c.status === "valid_backup").length;
+            const assignedCount = cachedCandidates.filter(c => c.status === "currently_assigned").length;
+            const clashCount = cachedCandidates.filter(c => c.status === "unavailable").length;
+            const pendingCount = cachedCandidates.filter(c => c.status === "unconfirmed" || c.status === "not_checked_in").length;
+
+            statsBox.innerHTML = `
+                <div><strong>Slot Evaluated:</strong> ${data.slot_id}</div>
+                <div><strong>Total Roster:</strong> ${data.total_faculty} Faculty</div>
+                <div><strong style="color:#16a34a;">● Valid Standby Backups:</strong> ${readyCount}</div>
+                <div><strong style="color:#0284c7;">● Active Exam Duty:</strong> ${assignedCount}</div>
+                <div><strong style="color:#b45309;">● Pending Confirm/Check-in:</strong> ${pendingCount}</div>
+                <div><strong style="color:#dc2626;">● Teaching Clashes:</strong> ${clashCount}</div>
+            `;
+
+            renderCandidatePoolTable();
+        } catch (err) {
+            tableBody.innerHTML = `<tr><td colspan="8" style="color:red;">Error loading candidate pool: ${err.message}</td></tr>`;
+        }
+    }
+
+    function renderCandidatePoolTable() {
+        const tableBody = document.getElementById("candidatePoolTable");
+        let list = cachedCandidates;
+        if (currentDeptFilter !== "ALL") {
+            list = list.filter(c => c.department.toUpperCase() === currentDeptFilter);
+        }
+
+        if (list.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:#6b7280;">No faculty members found in department ${currentDeptFilter}</td></tr>`;
+            return;
+        }
+
+        tableBody.innerHTML = list.map(c => {
+            let badgeClass = "badge-danger";
+            let badgeTitle = "UNAVAILABLE";
+            let rowStyle = "";
+
+            if (c.status === "valid_backup") {
+                badgeClass = "badge-success";
+                badgeTitle = "VALID BACKUP";
+                rowStyle = "background:#f0fdf4;";
+            } else if (c.status === "currently_assigned") {
+                badgeClass = "badge-info";
+                badgeTitle = "CURRENTLY ASSIGNED";
+                rowStyle = "background:#f0f9ff;";
+            } else if (c.status === "unconfirmed") {
+                badgeClass = "badge-warning";
+                badgeTitle = "UNCONFIRMED (H5)";
+            } else if (c.status === "not_checked_in") {
+                badgeClass = "badge-warning";
+                badgeTitle = "NOT CHECKED IN (H6)";
+            } else if (c.status === "unavailable") {
+                badgeClass = "badge-danger";
+                badgeTitle = "TEACHING CLASH (H4)";
+            }
+
+            return `
+                <tr style="${rowStyle}">
+                    <td><strong>${c.invigilator_id}</strong> - ${c.name}</td>
+                    <td><strong>${c.department}</strong> (Block ${c.block})</td>
+                    <td style="font-size:12px; color:#374151;">${c.schedule_detail || "-"}</td>
+                    <td>${c.timetable_free ? '<span class="badge badge-success">✓ Free</span>' : '<span class="badge badge-danger">✗ Clash</span>'}</td>
+                    <td>${c.confirmed ? '<span class="badge badge-success">✓ Confirmed</span>' : '<span class="badge badge-warning">⏳ Pending</span>'}</td>
+                    <td>${c.checked_in ? '<span class="badge badge-success">✓ Checked In</span>' : '<span class="badge badge-danger">❌ Absent</span>'}</td>
+                    <td>${c.currently_assigned ? '<strong>Yes (Exam)</strong>' : '<span style="color:#6b7280;">No</span>'}</td>
+                    <td>
+                        <span class="badge ${badgeClass}">${badgeTitle}</span>
+                        <div style="font-size:11px; margin-top:3px; color:#4b5563;">${c.reason}</div>
+                    </td>
+                </tr>
+            `;
+        }).join("");
+    }
+
+    async function loadMasterRegistryData() {
+        const tableBody = document.getElementById("masterRegistryTable");
+        tableBody.innerHTML = `<tr><td colspan="8">Loading institutional master registry...</td></tr>`;
+
+        try {
+            const res = await fetch(`${API}/faculty`);
+            const data = await res.json();
+            const list = data.faculty || [];
+
+            tableBody.innerHTML = list.map(f => {
+                const t1Free = f.available_slots.includes("T1");
+                const t2Free = f.available_slots.includes("T2");
+                const t1Sched = (f.teaching_schedule && f.teaching_schedule.T1) || (t1Free ? "Free: No Lecture" : "Busy: Lecture Clash");
+                const t2Sched = (f.teaching_schedule && f.teaching_schedule.T2) || (t2Free ? "Free: No Lecture" : "Busy: Lecture Clash");
+
+                const dutyHtml = f.assignment
+                    ? `<span class="badge badge-info">${f.assignment.exam_id} (${f.assignment.slot_id} / ${f.assignment.room_id})</span>`
+                    : `<span style="color:#6b7280;">Standby Reserve</span>`;
+
+                return `
+                    <tr>
+                        <td><strong>${f.invigilator_id}</strong> - ${f.name}</td>
+                        <td><span style="font-weight:bold; color:#1e40af;">${f.department}</span></td>
+                        <td>Block ${f.block}</td>
+                        <td style="font-size:12px;">
+                            ${t1Free ? '<span class="badge badge-success">Free</span>' : '<span class="badge badge-danger">Busy</span>'}
+                            <div style="color:#374151; margin-top:2px;">${t1Sched}</div>
+                        </td>
+                        <td style="font-size:12px;">
+                            ${t2Free ? '<span class="badge badge-success">Free</span>' : '<span class="badge badge-danger">Busy</span>'}
+                            <div style="color:#374151; margin-top:2px;">${t2Sched}</div>
+                        </td>
+                        <td style="font-size:12px;">
+                            ${f.confirmed_slots.length > 0 ? '✓ Confirmed (' + f.confirmed_slots.join(', ') + ')' : '<span style="color:#b45309;">⏳ Pending</span>'}
+                        </td>
+                        <td style="font-size:12px;">
+                            ${f.checked_in_slots.length > 0 ? '✓ Checked In (' + f.checked_in_slots.join(', ') + ')' : '<span style="color:#dc2626;">❌ Absent</span>'}
+                        </td>
+                        <td>${dutyHtml}</td>
+                    </tr>
+                `;
+            }).join("");
+        } catch (err) {
+            tableBody.innerHTML = `<tr><td colspan="8" style="color:red;">Error loading master registry: ${err.message}</td></tr>`;
+        }
+    }
+
+    // =====================================================
+    // RESET STATE
+    // =====================================================
+    async function resetState() {
+        try {
+            const res = await fetch(`${API}/reset`, { method: "POST" });
+            const data = await res.json();
+            alert("✅ System state reset to initial pristine schedule.");
+            await loadInitialSchedule();
+            agentCard.classList.add("hidden");
+            recoveredCard.classList.add("hidden");
+            verificationCard.classList.add("hidden");
+            document.getElementById("preExamStatus").classList.add("hidden");
+            document.getElementById("copilotResultBox").classList.add("hidden");
+            if (poolVisible) toggleCandidatePool();
+        } catch (err) {
+            alert("Error resetting state: " + err.message);
+        }
+    }
+
+    // =====================================================
+    // RENDER RECOVERY OUTPUT
+    // =====================================================
+    function renderRecoveryOutput(data) {
+        if (data.explanation && data.explanation.length > 0) {
+            explanationBox.innerHTML = data.explanation.map(exp => `
+                <div style="margin-top:8px; line-height:1.5;">${exp.includes('[AI') ? '🧠' : '💡'} <em>${exp}</em></div>
+            `).join("");
+        } else {
+            explanationBox.innerHTML = `The Agent detected the disruption, repaired the affected assignment, and verified the final schedule.`;
+        }
+
+        const origMap = {};
+        initialScheduleData.forEach(item => {
+            origMap[item.exam_id] = item;
+        });
+
+        recoveredSchedule.innerHTML = data.schedule.map(item => {
+            const orig = origMap[item.exam_id];
+            const changed = orig && (orig.room_id !== item.room_id || orig.invigilator_ids.join(",") !== item.invigilator_ids.join(","));
+            const badge = changed
+                ? `<span class="badge badge-warning">REPAIRED</span>`
+                : `<span class="badge badge-success">PRESERVED</span>`;
+
+            return `
+                <tr style="${changed ? 'background:#fffbeb;' : ''}">
+                    <td><strong>${item.exam_id}</strong></td>
+                    <td>${item.slot_id}</td>
+                    <td>${item.room_id}</td>
+                    <td>${item.invigilator_ids.join(", ")}</td>
+                    <td>${badge}</td>
+                </tr>
+            `;
+        }).join("");
+
+        agentCard.classList.remove("hidden");
+        recoveredCard.classList.remove("hidden");
+        verificationCard.classList.remove("hidden");
+
+        if (poolVisible) toggleCandidatePool();
+    }
+
+    // =====================================================
+    // MANUAL RECOVERY BUTTON
+    // =====================================================
+    recoveryButton.addEventListener("click", async () => {
+        const type = disruptionType.value;
+
+        loading.style.display = "block";
+        errorBox.style.display = "none";
+        agentCard.classList.add("hidden");
+        recoveredCard.classList.add("hidden");
+        verificationCard.classList.add("hidden");
+        recoveryButton.disabled = true;
+
+        try {
+            const response = await fetch(`${API}/run-recovery?disruption_type=${type}`, {
+                method: "POST"
+            });
+
+            if (!response.ok) {
+                throw new Error(`Backend returned ${response.status}`);
+            }
+
+            const data = await response.json();
+            if (data.status !== "success") {
+                throw new Error(data.message || "Recovery failed");
+            }
+
+            renderRecoveryOutput(data);
+
+        } catch (error) {
+            console.error(error);
+            errorBox.textContent = "❌ Recovery failed: " + error.message;
+            errorBox.style.display = "block";
+        } finally {
+            loading.style.display = "none";
+            recoveryButton.disabled = false;
+        }
+    });
+
+    // Check coordinator session on load
+    window.addEventListener("DOMContentLoaded", () => {
+        loadInitialSchedule();
+        checkLLMStatus();
+        const saved = sessionStorage.getItem("coordinator_session");
+        if (saved) {
+            unlockCoordinatorConsole();
+        }
+    });
+</script>
+
+</body>
+</html>

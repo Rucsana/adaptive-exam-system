@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Faculty Portal | Adaptive Exam Operations</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f7fb;
+            color: #1f2937;
+        }
+
+        header {
+            background: #111827;
+            color: white;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        header p {
+            margin: 4px 0 0;
+            color: #cbd5e1;
+            font-size: 14px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .back-link {
+            display: inline-block;
+            padding: 8px 14px;
+            background: #374151;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .back-link:hover {
+            background: #4b5563;
+        }
+
+        .btn-logout {
+            padding: 8px 14px;
+            background: #dc2626;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 14px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.07);
+        }
+
+        h2 {
+            margin-top: 0;
+        }
+
+        input, select, button {
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            font-size: 15px;
+        }
+
+        input {
+            width: 100%;
+            margin-bottom: 12px;
+        }
+
+        select {
+            width: 100%;
+            margin: 10px 0 15px;
+        }
+
+        button.primary-btn {
+            cursor: pointer;
+            background: #111827;
+            color: white;
+            border: none;
+            width: 100%;
+            font-weight: bold;
+            padding: 12px;
+        }
+
+        button.primary-btn:hover {
+            opacity: 0.9;
+        }
+
+        .pill-btn {
+            background: #e0f2fe;
+            color: #0369a1;
+            border: 1px solid #bae6fd;
+            border-radius: 20px;
+            padding: 6px 14px;
+            font-size: 13px;
+            cursor: pointer;
+            font-weight: 500;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+
+        .pill-btn:hover {
+            background: #bae6fd;
+        }
+
+        .status {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .status-box {
+            padding: 18px;
+            border-radius: 10px;
+            background: #f8fafc;
+            border: 1px solid #e5e7eb;
+        }
+
+        .status-box strong {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .success { color: #15803d; font-weight: bold; }
+        .warning { color: #b45309; font-weight: bold; }
+
+        .message {
+            margin-top: 18px;
+            padding: 14px;
+            border-radius: 8px;
+            background: #eef2ff;
+        }
+
+        .error-msg {
+            margin-top: 12px;
+            padding: 12px;
+            border-radius: 8px;
+            background: #fee2e2;
+            color: #991b1b;
+            font-size: 14px;
+            display: none;
+        }
+
+        .faculty-profile {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            background: #f0fdf4;
+            border-left: 5px solid #16a34a;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .duty {
+            border-left: 5px solid #111827;
+            background: #f8fafc;
+            padding: 18px;
+            border-radius: 8px;
+        }
+
+        .duty-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 9px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .duty-row:last-child {
+            border-bottom: none;
+        }
+
+        .empty-duty {
+            color: #6b7280;
+        }
+
+        .agent-note {
+            margin-top: 15px;
+            padding: 14px;
+            border-radius: 8px;
+            background: #eef2ff;
+        }
+
+        .notification {
+            border-left: 5px solid #111827;
+            background: #f8fafc;
+            padding: 16px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            line-height: 1.5;
+        }
+
+        .notification:last-child {
+            margin-bottom: 0;
+        }
+
+        .empty-notification {
+            color: #6b7280;
+        }
+
+        .hidden { display: none !important; }
+
+        @media (max-width: 700px) {
+            .status { grid-template-columns: 1fr; }
+            .duty-row { flex-direction: column; gap: 4px; }
+            header { padding: 15px; }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <div>
+        <h1>👨‍🏫 Faculty Portal</h1>
+        <p>Adaptive Exam Operations & Schedule Recovery System</p>
+    </div>
+    <div class="header-actions">
+        <a class="back-link" href="index.html">← Exam Coordinator Console</a>
+        <button id="logoutBtn" class="btn-logout hidden" onclick="facultyLogout()">🚪 Sign Out</button>
+    </div>
+</header>
+
+<div class="container">
+
+    <!-- 1. FACULTY LOGIN CARD -->
+    <div class="card" id="loginCard">
+        <h2>🔐 Faculty Sign-In</h2>
+        <p style="color:#6b7280; font-size:14px; margin-top:-4px;">Enter your institutional Faculty ID and Password to view your assignments, teaching schedule, and notifications.</p>
+
+        <label for="facultyIdInput">Faculty ID</label>
+        <input type="text" id="facultyIdInput" placeholder="e.g. I02 (I01 to I12)" />
+
+        <label for="facultyPasswordInput">Password</label>
+        <input type="password" id="facultyPasswordInput" placeholder="Default: faculty123" />
+
+        <div style="margin: 10px 0 16px;">
+            <span style="font-size:13px; color:#4b5563; font-weight:bold; display:block; margin-bottom:6px;">Quick Demo Accounts — Primary Faculty:</span>
+            <button class="pill-btn" onclick="quickFill('I02', 'backup123')">🔑 I02 · Dr. Priya Sharma (ECE)</button>
+            <button class="pill-btn" onclick="quickFill('I03', 'emergency123')">🔑 I03 · Dr. Rajesh Verma (IT)</button>
+            <button class="pill-btn" onclick="quickFill('I01', 'test123')">🔑 I01 · Dr. Ramesh Kumar (CSE)</button>
+        </div>
+
+        <div style="margin: 0 0 16px;">
+            <span style="font-size:13px; color:#4b5563; font-weight:bold; display:block; margin-bottom:6px;">Extended Roster (I04–I12):</span>
+            <button class="pill-btn" onclick="quickFill('I04', 'faculty123')">🔑 I04 · Dr. Ananya Roy (CSE)</button>
+            <button class="pill-btn" onclick="quickFill('I05', 'faculty123')">🔑 I05 · Dr. Vikram Malhotra (ECE)</button>
+            <button class="pill-btn" onclick="quickFill('I06', 'faculty123')">🔑 I06 · Dr. Sneha Patel (IT)</button>
+            <button class="pill-btn" onclick="quickFill('I07', 'faculty123')">🔑 I07 · Dr. Suresh Menon (MECH)</button>
+            <button class="pill-btn" onclick="quickFill('I08', 'faculty123')">🔑 I08 · Dr. Kavita Nair (CSE)</button>
+            <button class="pill-btn" onclick="quickFill('I09', 'faculty123')">🔑 I09 · Dr. Arvind Swaminathan (ECE)</button>
+            <button class="pill-btn" onclick="quickFill('I10', 'faculty123')">🔑 I10 · Dr. Meenakshi Sundaram (IT)</button>
+            <button class="pill-btn" onclick="quickFill('I11', 'faculty123')">🔑 I11 · Dr. Rahul Deshmukh (MECH)</button>
+            <button class="pill-btn" onclick="quickFill('I12', 'faculty123')">🔑 I12 · Dr. Shalini Gupta (MECH)</button>
+        </div>
+
+        <button class="primary-btn" onclick="facultyLogin()">🔐 Sign In</button>
+        <div id="loginError" class="error-msg"></div>
+    </div>
+
+    <!-- 2. AUTHENTICATED PORTAL CONTENT -->
+    <div id="portalContent" class="hidden">
+
+        <!-- LOGGED-IN PROFILE BANNER -->
+        <div class="faculty-profile">
+            <div>
+                <strong id="profName" style="font-size:18px;"></strong><br>
+                <span id="profDetails" style="font-size:14px; color:#374151;"></span>
+            </div>
+            <div>
+                <span style="font-size:13px; background:#dcfce7; color:#166534; font-weight:bold; padding:6px 12px; border-radius:20px;">
+                    ● ACTIVE SESSION
+                </span>
+            </div>
+        </div>
+
+        <!-- ASSIGNED DUTY -->
+        <div class="card" id="dutyCard">
+            <h2>📅 Assigned Exam Duty</h2>
+            <div id="dutyContent" class="duty">
+                No duty information available.
+            </div>
+            <div class="agent-note">
+                🤖 <strong>Agent Monitoring Status:</strong>
+                Your exam duty is actively monitored by the autonomous recovery loop. If an operational disruption occurs, your room or invigilator assignment will automatically update and you will be notified instantly.
+            </div>
+        </div>
+
+        <!-- TEACHING SCHEDULE CARD (NEW) -->
+        <div class="card" id="scheduleCard">
+            <h2>🗓️ My Teaching Schedule &amp; Invigilation Readiness</h2>
+            <p style="color:#6b7280; font-size:14px; margin-top:-8px;">Your daily lecture timetable and invigilation eligibility status as evaluated by the autonomous scheduling agent.</p>
+            <div id="teachingScheduleContent">
+                <div style="color:#6b7280;">Loading your schedule...</div>
+            </div>
+        </div>
+
+        <!-- NOTIFICATIONS -->
+        <div class="card" id="notificationCard">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <h2 style="margin:0;">🔔 Notifications &amp; Alerts</h2>
+                <button onclick="loadNotifications()" style="padding:6px 12px; font-size:13px; background:#4b5563; color:white; border:none; border-radius:6px; cursor:pointer;">
+                    🔄 Refresh
+                </button>
+            </div>
+            <div id="notificationContent">
+                No new notifications.
+            </div>
+        </div>
+
+        <!-- FACULTY AVAILABILITY -->
+        <div class="card" id="statusCard">
+            <h2>📋 Operational Availability &amp; Check-In</h2>
+
+            <div class="status">
+                <div class="status-box">
+                    <strong>Timetable Availability</strong>
+                    <span id="availableStatus">-</span>
+                </div>
+
+                <div class="status-box">
+                    <strong>Duty Confirmation</strong>
+                    <span id="confirmedStatus">-</span>
+                </div>
+
+                <div class="status-box">
+                    <strong>Physical Check-in</strong>
+                    <span id="checkedInStatus">-</span>
+                </div>
+            </div>
+
+            <div style="margin-top:25px;">
+                <label for="slotSelect">Select Exam Slot</label>
+                <select id="slotSelect">
+                    <option value="T1">T1 — Morning Session (09:00 - 12:00)</option>
+                    <option value="T2">T2 — Afternoon Session (14:00 - 17:00)</option>
+                </select>
+
+                <div style="display:flex; gap:10px; margin-top:10px;">
+                    <button style="background:#111827; color:white; border:none; cursor:pointer;" onclick="confirmAvailability()">
+                        ✅ Confirm Availability
+                    </button>
+                    <button style="background:#0284c7; color:white; border:none; cursor:pointer;" onclick="checkIn()">
+                        📍 Physical Check In
+                    </button>
+                </div>
+            </div>
+
+            <div id="message" class="message">
+                Select a slot above to submit confirmation or physical check-in.
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+const API = "http://127.0.0.1:8000";
+
+let currentFacultyUser = null;
+let allFacultyData = [];
+
+const examSubjects = {
+    "EX01": "Data Structures",
+    "EX02": "Database Management",
+    "EX03": "Signals & Systems",
+    "EX04": "Digital VLSI Design",
+    "EX05": "Computer Networks",
+    "EX06": "Operating Systems"
+};
+
+// =====================================================
+// QUICK DEMO CREDENTIAL FILL
+// =====================================================
+function quickFill(id, pass) {
+    document.getElementById("facultyIdInput").value = id;
+    document.getElementById("facultyPasswordInput").value = pass;
+    document.getElementById("loginError").style.display = "none";
+}
+
+// =====================================================
+// FACULTY LOGIN
+// =====================================================
+async function facultyLogin() {
+    const id = document.getElementById("facultyIdInput").value.trim();
+    const pass = document.getElementById("facultyPasswordInput").value.trim();
+    const errBox = document.getElementById("loginError");
+
+    if (!id || !pass) {
+        errBox.textContent = "Please enter both Faculty ID and Password.";
+        errBox.style.display = "block";
+        return;
+    }
+
+    try {
+        const res = await fetch(`${API}/auth/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username: id, password: pass, role: "faculty" })
+        });
+        const data = await res.json();
+
+        if (data.status !== "success") {
+            errBox.textContent = "❌ " + data.message;
+            errBox.style.display = "block";
+            return;
+        }
+
+        currentFacultyUser = data;
+        sessionStorage.setItem("faculty_session", JSON.stringify(data));
+        showAuthenticatedPortal();
+
+    } catch (e) {
+        errBox.textContent = "Unable to connect to backend authentication service.";
+        errBox.style.display = "block";
+    }
+}
+
+// =====================================================
+// FACULTY LOGOUT
+// =====================================================
+function facultyLogout() {
+    sessionStorage.removeItem("faculty_session");
+    currentFacultyUser = null;
+    document.getElementById("portalContent").classList.add("hidden");
+    document.getElementById("loginCard").classList.remove("hidden");
+    document.getElementById("logoutBtn").classList.add("hidden");
+    document.getElementById("facultyPasswordInput").value = "";
+    document.getElementById("loginError").style.display = "none";
+}
+
+// =====================================================
+// SHOW AUTHENTICATED PORTAL
+// =====================================================
+async function showAuthenticatedPortal() {
+    document.getElementById("loginCard").classList.add("hidden");
+    document.getElementById("portalContent").classList.remove("hidden");
+    document.getElementById("logoutBtn").classList.remove("hidden");
+
+    document.getElementById("profName").textContent = `${currentFacultyUser.name} (${currentFacultyUser.user_id})`;
+    document.getElementById("profDetails").textContent = `${currentFacultyUser.department} Department &middot; Building Block ${currentFacultyUser.block}`;
+
+    await refreshFacultyData();
+    await loadNotifications();
+}
+
+// =====================================================
+// REFRESH FACULTY DATA FROM BACKEND
+// =====================================================
+async function refreshFacultyData() {
+    try {
+        const res = await fetch(`${API}/faculty`);
+        const data = await res.json();
+        allFacultyData = data.faculty;
+
+        const liveRecord = allFacultyData.find(f => f.invigilator_id === currentFacultyUser.user_id);
+        if (liveRecord) {
+            updateDuty(liveRecord);
+            updateStatus(liveRecord);
+            renderTeachingSchedule(liveRecord);
+        }
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+// =====================================================
+// UPDATE DUTY DISPLAY
+// =====================================================
+function updateDuty(record) {
+    const content = document.getElementById("dutyContent");
+    const assignment = record.assignment;
+
+    if (!assignment) {
+        content.innerHTML = `<div class="empty-duty">No active exam duty currently assigned. You are on <strong>Standby Reserve</strong>.</div>`;
+        return;
+    }
+
+    const subject = examSubjects[assignment.exam_id] || "Exam";
+
+    content.innerHTML = `
+        <div class="duty-row">
+            <strong>Exam Code</strong>
+            <span>${assignment.exam_id}</span>
+        </div>
+        <div class="duty-row">
+            <strong>Subject</strong>
+            <span><strong>${subject}</strong></span>
+        </div>
+        <div class="duty-row">
+            <strong>Exam Slot</strong>
+            <span>${assignment.slot_id === 'T1' ? 'T1 — Morning Session (09:00 – 12:00)' : 'T2 — Afternoon Session (14:00 – 17:00)'}</span>
+        </div>
+        <div class="duty-row">
+            <strong>Assigned Examination Hall</strong>
+            <span><strong style="color:#1d4ed8; font-size:16px;">${assignment.room_id}</strong></span>
+        </div>
+    `;
+}
+
+// =====================================================
+// RENDER TEACHING SCHEDULE (NEW)
+// =====================================================
+function renderTeachingSchedule(record) {
+    const container = document.getElementById("teachingScheduleContent");
+    const schedule = record.teaching_schedule || {};
+    const slots = ["T1", "T2"];
+    const slotLabels = {
+        "T1": "T1 — Morning Session (09:00 – 12:00)",
+        "T2": "T2 — Afternoon Session (14:00 – 17:00)"
+    };
+
+    let html = `<div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">`;
+
+    for (const slot of slots) {
+        const detail = schedule[slot] || (record.available_slots.includes(slot) ? "Free: No Lecture" : "Busy: Teaching / Lab");
+        const isFree = record.available_slots.includes(slot);
+        const isConfirmed = record.confirmed_slots.includes(slot);
+        const isCheckedIn = record.checked_in_slots.includes(slot);
+
+        let eligibilityBadge = "";
+        let eligibilityReason = "";
+        if (!isFree) {
+            eligibilityBadge = `<span style="background:#fee2e2; color:#991b1b; font-size:11px; font-weight:bold; padding:3px 8px; border-radius:10px;">⛔ H4 TEACHING CLASH</span>`;
+            eligibilityReason = "Unavailable for invigilation — lecture conflict.";
+        } else if (!isConfirmed) {
+            eligibilityBadge = `<span style="background:#fef3c7; color:#92400e; font-size:11px; font-weight:bold; padding:3px 8px; border-radius:10px;">⏳ UNCONFIRMED (H5)</span>`;
+            eligibilityReason = "Please confirm your duty availability below.";
+        } else if (!isCheckedIn) {
+            eligibilityBadge = `<span style="background:#fef3c7; color:#92400e; font-size:11px; font-weight:bold; padding:3px 8px; border-radius:10px;">📍 NOT CHECKED IN (H6)</span>`;
+            eligibilityReason = "Confirmed, but physical campus check-in pending.";
+        } else {
+            eligibilityBadge = `<span style="background:#dcfce7; color:#166534; font-size:11px; font-weight:bold; padding:3px 8px; border-radius:10px;">✅ ELIGIBLE INVIGILATOR</span>`;
+            eligibilityReason = "All three verification tiers passed (H4 + H5 + H6).";
+        }
+
+        const borderColor = isFree ? (isConfirmed && isCheckedIn ? "#16a34a" : "#f59e0b") : "#dc2626";
+        const bgColor = isFree ? (isConfirmed && isCheckedIn ? "#f0fdf4" : "#fffbeb") : "#fef2f2";
+
+        html += `
+            <div style="border-left:4px solid ${borderColor}; background:${bgColor}; border-radius:8px; padding:14px;">
+                <div style="font-size:12px; font-weight:bold; color:#374151; margin-bottom:6px;">${slotLabels[slot]}</div>
+                <div style="font-size:13px; color:#111827; margin-bottom:8px;">📚 ${detail}</div>
+                <div style="margin-bottom:4px;">${eligibilityBadge}</div>
+                <div style="font-size:11px; color:#6b7280; margin-top:4px;">${eligibilityReason}</div>
+            </div>
+        `;
+    }
+
+    html += `</div>`;
+    html += `
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:10px 14px; border-radius:8px; font-size:12px; color:#374151; line-height:1.6;">
+            <strong>🤖 Agent Eligibility Logic:</strong> The autonomous agent evaluates every faculty member through a 3-tier verification chain:
+            <strong>H4</strong> (Timetable Free — no lecture clash) →
+            <strong>H5</strong> (Duty Confirmed — explicit availability declaration) →
+            <strong>H6</strong> (Physically Checked In — campus presence verified).
+            Only faculty passing all three tiers qualify as valid standby backups.
+        </div>
+    `;
+
+    container.innerHTML = html;
+}
+
+// =====================================================
+// LOAD NOTIFICATIONS
+// =====================================================
+async function loadNotifications() {
+    if (!currentFacultyUser) return;
+    const content = document.getElementById("notificationContent");
+
+    try {
+        const res = await fetch(`${API}/faculty/${currentFacultyUser.user_id}/notifications`);
+        const data = await res.json();
+
+        if (data.status !== "success" || !data.notifications || data.notifications.length === 0) {
+            content.innerHTML = `<div class="empty-notification">No new notifications.</div>`;
+            return;
+        }
+
+        content.innerHTML = data.notifications
+            .slice()
+            .reverse()
+            .map(n => `<div class="notification">${n}</div>`)
+            .join("");
+    } catch (err) {
+        content.innerHTML = `<div class="empty-notification">Unable to load notifications.</div>`;
+    }
+}
+
+// =====================================================
+// UPDATE AVAILABILITY STATUS BOXES
+// =====================================================
+function updateStatus(record) {
+    const liveRecord = record || allFacultyData.find(f => f.invigilator_id === currentFacultyUser.user_id);
+    if (!liveRecord) return;
+
+    const slot = document.getElementById("slotSelect").value;
+
+    document.getElementById("availableStatus").innerHTML =
+        liveRecord.available_slots.includes(slot)
+            ? `<span class="success">✓ Available</span>`
+            : `<span class="warning">✗ Unavailable</span>`;
+
+    document.getElementById("confirmedStatus").innerHTML =
+        liveRecord.confirmed_slots.includes(slot)
+            ? `<span class="success">✓ Confirmed</span>`
+            : `<span class="warning">Pending Confirmation</span>`;
+
+    document.getElementById("checkedInStatus").innerHTML =
+        liveRecord.checked_in_slots.includes(slot)
+            ? `<span class="success">✓ Physically Checked In</span>`
+            : `<span class="warning">Not Checked In</span>`;
+}
+
+document.getElementById("slotSelect").addEventListener("change", () => updateStatus());
+
+// =====================================================
+// CONFIRM AVAILABILITY
+// =====================================================
+async function confirmAvailability() {
+    if (!currentFacultyUser) return;
+    const slot = document.getElementById("slotSelect").value;
+
+    try {
+        const res = await fetch(`${API}/faculty/${currentFacultyUser.user_id}/confirm?slot_id=${slot}`, { method: "POST" });
+        const data = await res.json();
+        showMessage(data.message);
+        await refreshFacultyData();
+        await loadNotifications();
+    } catch (err) {
+        showMessage("Unable to connect to the backend.");
+    }
+}
+
+// =====================================================
+// CHECK IN
+// =====================================================
+async function checkIn() {
+    if (!currentFacultyUser) return;
+    const slot = document.getElementById("slotSelect").value;
+
+    try {
+        const res = await fetch(`${API}/faculty/${currentFacultyUser.user_id}/check-in?slot_id=${slot}`, { method: "POST" });
+        const data = await res.json();
+        showMessage(data.message);
+        await refreshFacultyData();
+        await loadNotifications();
+    } catch (err) {
+        showMessage("Unable to connect to the backend.");
+    }
+}
+
+function showMessage(msg) {
+    document.getElementById("message").textContent = msg;
+}
+
+// Check session on load
+window.addEventListener("DOMContentLoaded", () => {
+    const saved = sessionStorage.getItem("faculty_session");
+    if (saved) {
+        currentFacultyUser = JSON.parse(saved);
+        showAuthenticatedPortal();
+    }
+});
+</script>
+
+</body>
+</html>
